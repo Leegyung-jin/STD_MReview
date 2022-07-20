@@ -94,26 +94,27 @@ public class UploadController {
     }
 
     @GetMapping("/display")
-    // URL 인코딩된 파일 이름을 파라미터로 받아 해당 파일을 byte[]로 만들어서 브라우저로 전달한다.
-    public ResponseEntity<byte[]> getFile(String fileName){
+    public ResponseEntity<byte[]> getFile(String fileName, String size) {
         ResponseEntity<byte[]> result = null;
 
         try {
             String srcFileName = URLDecoder.decode(fileName, "UTF-8");
-            log.info("FileName: " + srcFileName);
+            log.info("fileName: " + srcFileName);
 
             File file = new File(uploadPath + File.separator + srcFileName);
-            log.info("File: " + file);
+            if (size != null && size.equals("1")){
+                file = new File(file.getParent(), file.getName().substring(2));
+            }
+            log.info("file: " + file);
 
             HttpHeaders header = new HttpHeaders();
 
-            // MIME타입 처리
+            // MIME 타입 처리
             header.add("Content-Type", Files.probeContentType(file.toPath()));
-
             // 파일 데이터 처리
             result = new ResponseEntity<>(FileCopyUtils.copyToByteArray(file), header, HttpStatus.OK);
         } catch (Exception e) {
-            log.info(e.getMessage());
+            log.error(e.getMessage());
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
         return result;
